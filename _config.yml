@@ -1,3 +1,1 @@
-remote_theme: jekyll/minima
-minima:
-  skin: auto
+theme: minima

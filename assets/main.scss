@@ -1,0 +1,15 @@
+---
+---
+@import "minima";
+
+body {
+  background-color: #fcfaf2; /* A soft, warm yellowish-paper color */
+  color: #333333;            /* Dark grey text instead of harsh pure black */
+}
+
+/* Ensure the header and footer blend seamlessly */
+.site-header, .site-footer {
+  border-top: 1px solid #e8e3d3;
+  border-bottom: 1px solid #e8e3d3;
+  background-color: #fcfaf2;
+}
