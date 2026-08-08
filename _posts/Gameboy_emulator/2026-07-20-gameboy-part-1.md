@@ -70,3 +70,16 @@ I love stacks, it's such a simple data structure, but the ways in which it can b
 
 Next is Interrupts, Interrupts are hardware signals that the main CPU code execution to handle other events, such as keyboard event, or timer interrupt. GameBoy handles this using a master enable flag (`IME`) inside the CPU, and two memory-mapped registers: `IE` (Interrupt Enable) at `0xFFFF` and `IF` (Interrupt Flag) at `0xFF0F`. When a bit in both `IE` and `IF` is set to 1, and `IME` is true, an interrupt is requested. The `EI` and `DI` instructions are used to set `IME` to true and false respectively. Although `DI` runs immediately, `EI` on real hardware take a 1 instruction delay, though I haven't implemented that yet as everything runs fine for now.
 
+## 4. Memory
+
+Now that the CPU could execute instructions, it needed somewhere to actually read and write data. The Game Boy's memory isn't one flat block, it's a bunch of separate regions stitched together, and the CPU has no idea that `0x8000` is video RAM while `0xC000` is work RAM, that's the memory bus's job. I wrote a `MemoryBus` struct holding each region as its own array (`vram`, `eram`, `wram`, `oam`, `io`, `hram`), with `read_byte`/`write_byte` routing through one big `match` on the address, not that different from the `execute()` match from the CPU section, just matching addresses instead of opcodes.
+
+The fun part was the serial port hack for the blargg test ROMs. On real hardware, writing `0x81` to `0xFF02` (`SC`) kicks off a byte-by-byte transfer over a link cable, using whatever's staged in `0xFF01` (`SB`). I don't have a link cable, but the test ROMs use this exact mechanism to print pass/fail results as plain text, so I just intercept writes to `SC`, and if the value is `0x81`, grab the byte in `SB` and print it straight to stdout.
+
+Two more things worth talking about: `interrupt_flag` starts at `0xE1`, not `0`, because the top 3 bits are unused and hardwired high on real hardware. And the `0x0000..=0x7FFF` write branch currently does nothing, which is fine for simple 32KB ROMs but means no Memory Bank Controller support yet, so anything that needs bank switching is broken until I implement MBC1/MBC3.
+
+## 5. Where things stand
+
+Once the core CPU was complete, I tried to implement the hardware timers to pass Blargg's CPU test ROMs. I quickly ran into issues with cycle accuracy. The timer hardware expects a precise falling-edge logic implementation, and my initial cycle-counting approach was getting out of sync with the CPU execution.
+
+I decided to do a `git reset` to clear out the broken timer code and leave the repository in a stable state.
